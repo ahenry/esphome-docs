@@ -121,7 +121,10 @@ for platforms with multiple sensors)
       - throttle: 1s
       - heartbeat: 5s
       - debounce: 0.1s
-      - delta: 5.0
+      - delta:
+          minimum: 3
+          maximum: 10
+      - unique:
       - or:
         - throttle: 1s
         - delta: 5.0
@@ -280,7 +283,7 @@ on the sensor but only push out an average on a specific interval (thus increasi
    -  **alpha**: The forget factor/alpha value of the filter.
    -  **send_every**: How often a sensor value should be pushed out.
 
-``throttle`` / ``heartbeat`` / ``debounce`` / ``delta``
+``throttle`` / ``heartbeat`` / ``debounce`` / ``delta`` / ``range``
 *******************************************************
 
 .. code-block:: yaml
@@ -308,9 +311,18 @@ on the sensor but only push out an average on a specific interval (thus increasi
 
 -  **delta**: This filter stores the last value passed through this filter and only
    passes incoming values through if the absolute difference is greater than the configured
-   value. For example if a value of 1.0 first comes in, it's passed on. If the delta filter
-   is configured with a value of 5, it will now not pass on an incoming value of 2.0, only values
-   that are at least 6.0 big or -4.0.
+   maximum and less than the configured minimum. For example if a value of 1.0 first comes in, 
+   it's passed on. If the delta filter is configured with a minimum value of 5, it will now not 
+   pass on an incoming value of 2.0, only values that are at least 6.0 big or -4.0. With a configured
+   maximum value of 10 configured, a first value of 1.0 would pass, but a subsequent spike to
+   +11.1 or -9.01 would be rejected. If both a minimum and maximum are configured, both conditions
+   must pass.
+
+   As a backwards compatibility measure for old configurations, a single value can be provided
+   to this filter, which will be used as a minimum. There will be no maximum set.
+
+-  **range**: Remove every value that is less than minimum or greater than maximum.
+   Either bound can be left out of the configuration to create an open-ended range.
 
 ``or`` Filter
 *************
