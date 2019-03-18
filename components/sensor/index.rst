@@ -97,6 +97,9 @@ useful if you want to apply some average over the last few values.
       - multiply: 1.2
       - filter_out: 42.0
       - filter_nan:
+      - range:
+          minimum: 0
+          maximum: 100
       - sliding_window_moving_average:
           window_size: 15
           send_every: 15
@@ -106,7 +109,9 @@ useful if you want to apply some average over the last few values.
       - throttle: 1s
       - heartbeat: 5s
       - debounce: 0.1s
-      - delta: 5.0
+      - delta:
+          minimum: 3
+          maximum: 10
       - unique:
       - or:
         - throttle: 1s
@@ -121,6 +126,8 @@ every filter there is currently:
 -  **filter_out**: Remove every sensor value that equals this number.
 -  **filter_nan**: Remove every value that is considered ``NAN`` (not a
    number) in C.
+-  **range**: Remove every value that is less than minimum or greater than maximum.
+   Either bound can be left out of the configuration to create an open-ended range.
 -  **sliding_window_moving_average**: A `simple moving
    average <https://en.wikipedia.org/wiki/Moving_average#Simple_moving_average>`__
    over the last few values.
@@ -156,9 +163,15 @@ every filter there is currently:
 
 -  **delta**: This filter stores the last value passed through this filter and only
    passes incoming values through if the absolute difference is greater than the configured
-   value. For example if a value of 1.0 first comes in, it's passed on. If the delta filter
-   is configured with a value of 5, it will now not pass on an incoming value of 2.0, only values
-   that are at least 6.0 big or -4.0.
+   maximum and less than the configured minimum. For example if a value of 1.0 first comes in, 
+   it's passed on. If the delta filter is configured with a minimum value of 5, it will now not 
+   pass on an incoming value of 2.0, only values that are at least 6.0 big or -4.0. With a configured
+   maximum value of 10 configured, a first value of 1.0 would pass, but a subsequent spike to
+   +11.1 or -9.01 would be rejected. If both a minimum and maximum are configured, both conditions
+   must pass.
+
+   As a backwards compatibility measure for old configurations, a single value can be provided
+   to this filter, which will be used as a minimum. There will be no maximum set.
 
 -  **unique**: This filter has no parameter and does one very simple thing: It only passes
    forward values if they are different from the last one that got through the pipeline.
